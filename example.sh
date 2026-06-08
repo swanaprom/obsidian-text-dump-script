@@ -3,13 +3,15 @@
 # ==========================================
 # CONFIGURATION CONSTANTS
 # ==========================================
-# Put your target directory and output name here
-VAULT_DIR="./My-Obsidian_Vault" # You can use either absolute or relative path here!
-OUT_NAME="Obsidian_dump"
+VAULT_DIR="./SDR"
+OUT_NAME="SDR_dump"
 
-# ==========================================
-# SCRIPT EXECUTION
-# ==========================================
+# AUTO-UPDATE INTERVAL (in seconds)
+# Set to 0 to run ONLY ONCE. 
+# Set to 10, 30, 60, etc., to auto-update continuously.
+INTERVAL=30
+
+
 # 1. Determine which Python command is available
 if command -v python3 &>/dev/null; then
     PYTHON_CMD="python3"
@@ -20,6 +22,23 @@ else
     exit 1
 fi
 
-# 2. Execute the script, passing the constants as arguments
-echo "Using $PYTHON_CMD to run the dump..."
-"$PYTHON_CMD" dump.py --dir="$VAULT_DIR" --out="$OUT_NAME" "$@"
+# 2. Execution Logic
+run_dump() {
+    echo "[$(date '+%H:%M:%S')] Running vault dump..."
+    "$PYTHON_CMD" dump.py --dir="$VAULT_DIR" --out="$OUT_NAME" "$@"
+}
+
+if [ "$INTERVAL" -eq 0 ]; then
+    # Run once and exit
+    run_dump "$@"
+else
+    # Run continuously in an infinite loop
+    echo "Auto-update enabled. Dumping every $INTERVAL seconds."
+    echo "Press Ctrl+C to stop."
+    echo "--------------------------------------------------"
+    
+    while true; do
+        run_dump "$@"
+        sleep "$INTERVAL"
+    done
+fi
